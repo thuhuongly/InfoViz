@@ -27,7 +27,7 @@
 
 
 // Get JSON data
-treeJSON = d3.json("../data/gameFlareD.json", function(error, treeData) {
+treeJSON = d3.json("../data/gameFlareGenre.json", function(error, treeData) {
 
     // Calculate total nodes, max label length
     var totalNodes = 0;
@@ -84,13 +84,6 @@ treeJSON = d3.json("../data/gameFlareD.json", function(error, treeData) {
 
     // sort the tree according to the node names
 
-    function sortTree() {
-        tree.sort(function(a, b) {
-            return b.name < a.name ? 1 : -1;
-        });
-    }
-    // Sort the tree initially incase the JSON isn't in a sorted order.
-    sortTree();
 
     // TODO: Pan function, can be better implemented.
 

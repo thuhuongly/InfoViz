@@ -29,12 +29,41 @@
     .search {
         width: 100%;
     }
+    .d3-tip {
+        line-height: 1;
+        font-weight: bold;
+        padding: 12px;
+        background: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        border-radius: 2px;
+    }
+
+    /* Creates a small triangle extender for the tooltip */
+    .d3-tip:after {
+        box-sizing: border-box;
+        display: inline;
+        font-size: 10px;
+        width: 100%;
+        line-height: 1;
+        color: rgba(0, 0, 0, 0.8);
+        content: "\25BC";
+        position: absolute;
+        text-align: center;
+    }
+
+    /* Style northward tooltips differently */
+    .d3-tip.n:after {
+        margin: -1px 0 0 0;
+        top: 100%;
+        left: 0;
+    }
 </style>
 <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/select2/3.5.0/select2.min.css"></link>
 
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/select2/3.5.0/select2.min.js"></script>
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/d3/3.4.11/d3.min.js"></script>
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
 <!-- This will be attached to select2, only static element on the page -->
 <div id="search"></div>
 
@@ -84,7 +113,7 @@
 
     var margin = {top: 20, right: 120, bottom: 20, left: 120},
             width = 2880 - margin.right - margin.left,
-            height = 11200 - margin.top - margin.bottom;
+            height = 6510 - margin.top - margin.bottom;
 
     var i = 0,
             duration = 750,
@@ -104,6 +133,33 @@
             .attr("height", height + margin.top + margin.bottom)
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    //tooltip
+    var tip = d3.tip()
+            .attr('class', 'd3-tip')
+            .offset([-10, 0])
+            .html(function(d) {
+                if (d.score) {
+                    $.getJSON("http://api.flickr.com/services/feeds/photos_public.gne?jsoncallback=?",
+                            {
+                                tags: d.name,
+                                tagmode: "any",
+                                format: "json"
+                            },
+                            function(data) {
+                                var image_src = data.items[1]['media']['m'].replace("_m", "_b");
+
+                                $('#image-zoom img').attr("src",image_src);
+
+                            });
+                    return "<strong>Score:</strong> <span style='color:red'>" + d.score + "</span> <br> <div id='image-zoom'><img class='zoom'' src=''height='60' width='80'> </div>";
+                    //return "<strong>Score:</strong> <span style='color:red'>" + d.score + "</span>";
+                }
+                else
+                    return "<strong>No of children:</strong> <span style='color:red'>" + d.children.length + "</span>";
+            })
+
+    svg.call(tip);
 
     //recursively collapse children
     function collapse(d) {
@@ -182,8 +238,8 @@
         var nodeEnter = node.enter().append("g")
                 .attr("class", "node")
                 .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
-                .on("mouseover", mouseover)
-                .on("mouseout", mouseout)
+                .on("mouseover", tip.show)
+                .on("mouseout", tip.hide)
                 .on("click", click);
 
         nodeEnter.append("circle")
@@ -284,19 +340,6 @@
             d.x0 = d.x;
             d.y0 = d.y;
         });
-    }
-    function mouseover(d) {
-        d3.select(this).append("text")
-                .attr("class", "hover")
-                .attr('transform', function(d){
-                    return 'translate(5, -10)';
-                })
-                .text(d.score);
-    }
-
-    // Toggle children on click.
-    function mouseout(d) {
-        d3.select(this).select("text.hover").remove();
     }
 </script>
 </html>
